@@ -108,7 +108,7 @@ const auth = new google.auth.GoogleAuth({
             }
     
             // Fetch department ID
-            const departmentQuery = 'SELECT department_id FROM departments WHERE department_name = ?';
+            const departmentQuery = 'SELECT department_id FROM Departments WHERE department_name = ?';
             const [departmentResults] = await db.promise().query(departmentQuery, [selectedDipartment]);
             const departmentId = departmentResults.length > 0 ? departmentResults[0].department_id : null;
     
@@ -117,7 +117,7 @@ const auth = new google.auth.GoogleAuth({
             }
     
             // Fetch user ID
-            const userIdQuery = 'SELECT user_id FROM users WHERE username = ?';
+            const userIdQuery = 'SELECT user_id FROM Users WHERE username = ?';
             const [userIdResults] = await db.promise().query(userIdQuery, [user]);
             const userId = userIdResults.length > 0 ? userIdResults[0].user_id : null;
     
@@ -155,7 +155,7 @@ const auth = new google.auth.GoogleAuth({
     
             // Insert file details into the database
             const uploadDate = new Date();
-            const insertQuery = 'INSERT INTO materials (material_title, file_path, department_id, uploaded_by) VALUES (?, ?, ?, ?)';
+            const insertQuery = 'INSERT INTO Materials (material_title, file_path, department_id, uploaded_by) VALUES (?, ?, ?, ?)';
             const inserts = [file.originalname, filePath, departmentId, userId];
             await db.promise().query(insertQuery, inserts);
     
@@ -222,7 +222,7 @@ app.post('/dipartment', (req, res) => {
     const { dipartment_name } = req.body;
     console.log('Department name:', dipartment_name); // Log incoming data
 
-    const query = `INSERT INTO departments (department_name) VALUES (?)`;
+    const query = `INSERT INTO Departments (department_name) VALUES (?)`;
     
     db.query(query, [dipartment_name], (err, result) => {
         if (err) {
@@ -272,7 +272,7 @@ app.patch('/addadmin', async (req, res) => {
 
 // 10 retrive the department
 app.get('/dipartments', (req, res) => {
-    const query = 'SELECT * FROM departments';
+    const query = 'SELECT * FROM Departments';
     
     db.query(query, (err, results) => {
         if (err) {
@@ -301,7 +301,7 @@ app.get('/users', (req, res) => {
 // Retrieve uploaded files
 app.get('/materials', async (req, res) => {
     try {
-        const query = 'SELECT * FROM materials'; // Adjust this query to fit your needs
+        const query = 'SELECT * FROM Materials'; // Adjust this query to fit your needs
         db.query(query, (err, results) => {
             if (err) {
                 console.error('Error fetching materials:', err);
