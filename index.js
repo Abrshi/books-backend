@@ -10,7 +10,22 @@ const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
+const allowedOrigins = [
+    'https://csbookstore.netlify.app', // Deployed frontend on Netlify
+    'http://localhost:3000' // Local frontend during development
+  ];
+  
+  app.use(cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error('Not allowed by CORS'));
+      }
+    }
+  }));
 app.use(express.json());
 
 const upload = multer({ dest: 'uploads/' }); // Temporary storage for google drive
