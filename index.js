@@ -273,6 +273,54 @@ app.patch('/addadmin', async (req, res) => {
     });
 });
 
+// 10 retrive the department
+app.get('/dipartments', (req, res) => {
+    const query = 'SELECT * FROM Departments';
+    
+    db.query(query, (err, results) => {
+        if (err) {
+            res.status(500).send(err);
+        } else {
+            res.json(results);
+        }
+    });
+});
+
+// 10 retrive the department
+app.get('/users', (req, res) => {
+    const query = 'SELECT * FROM Users';
+    
+
+    db.query(query, (err, results) => {
+        if (err) {
+            res.status(500).send(err);
+        } else {
+            res.json(results);
+        }
+    });
+});
+
+//////////////////////////////////////////////////////////
+// Retrieve uploaded files
+app.get('/materials', async (req, res) => {
+    try {
+        const query = 'SELECT * FROM Materials'; // Adjust this query to fit your needs
+        db.query(query, (err, results) => {
+            if (err) {
+                console.error('Error fetching materials:', err);
+                
+                return res.status(500).send('Error fetching materials.');
+            }
+
+            // Send results back to client
+            res.status(200).json(results);
+        });
+    } catch (error) {
+        console.error('Error retrieving materials:', error);
+        res.status(500).send('Error retrieving materials.');
+    }
+});
+
 app.listen(5000, () => {
     console.log('Server running on port 5000');
 });
