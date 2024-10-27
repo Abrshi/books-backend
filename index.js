@@ -60,6 +60,7 @@ app.post('/register', async (req, res) => {
     db.query(query, [name, email, hashedPassword, role], (err, result) => {
         if (err) {
             res.status(500).send(err);
+            console.error('err during rigister:', err);
         } else {
             res.send('User created successfully');
         }
@@ -74,6 +75,8 @@ app.post('/courses', (req, res) => {
     db.query(query, [course_name, course_category, description], (err, result) => {
         if (err) {
             res.status(500).send(err);
+            console.error('err during  add cours:', err);
+            
         } else {
             res.send('Course created successfully');
         }
@@ -85,7 +88,11 @@ app.post('/login', (req, res) => {
     const { email, password } = req.body;
     
     db.query('SELECT * FROM Users WHERE email = ?', [email], async (err, results) => {
-        if (err) return res.status(400).send(err);
+        if (err) {
+            console.error('err during  add cours:', err);
+            return res.status(400).send(err);
+            
+        }
         if (results.length === 0) return res.status(404).send('User not found');
 
         const user = results[0];
@@ -179,8 +186,9 @@ const auth = new google.auth.GoogleAuth({
     
             res.status(200).send('File uploaded and saved.');
         } catch (err) {
-            console.error('Error:', err);
+            console.error('errdurinf add materiyal:', err);
             res.status(500).send('An error occurred during upload.');
+             
         }
     });
     
@@ -320,6 +328,7 @@ app.get('/materials', async (req, res) => {
         db.query(query, (err, results) => {
             if (err) {
                 console.error('Error fetching materials:', err);
+                
                 return res.status(500).send('Error fetching materials.');
             }
 
