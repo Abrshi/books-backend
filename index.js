@@ -308,7 +308,7 @@ app.get('/dipartments', (req, res) => {
 
 // 10 retrive the department
 app.get('/users', (req, res) => {
-    const query = 'SELECT * FROM users';
+    const query = 'SELECT * FROM Users';
     
 
     db.query(query, (err, results) => {
