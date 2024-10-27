@@ -99,100 +99,91 @@ app.post('/login', (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(401).send('Invalid credentials');
 
-        // Generate JWT token
-        // const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET, {
-        //     expiresIn: '1h',
-        // });
-
-        // res.json({ token, username: user.username });
-         res.json({ username: user.username ,role:user.role , behavior_score:user.behavior_score ,email:user.email ,user_id:user.user_id});
+        res.json({ username: user.username ,role:user.role , behavior_score:user.behavior_score ,email:user.email ,user_id:user.user_id});
     });
 });
 
 // 4. Upload a new material
 const auth = new google.auth.GoogleAuth({
-        credentials: {
-            client_email: process.env.GOOGLE_CLIENT_EMAIL,
-            private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-        },
-        scopes: ['https://www.googleapis.com/auth/drive.file'],
-    });
-    
-    const drive = google.drive({ version: 'v3', auth });
-    
-    app.post('/upload', upload.single('file'), async (req, res) => {
-        try {
-            const { selectedDipartment, user } = req.body;
-            const file = req.file;
-    
-            if (!file) {
-                return res.status(400).send('No file uploaded.');
-            }
-    
-            // Fetch department ID
-            const departmentQuery = 'SELECT department_id FROM Departments WHERE department_name = ?';
-            const [departmentResults] = await db.promise().query(departmentQuery, [selectedDipartment]);
-            const departmentId = departmentResults.length > 0 ? departmentResults[0].department_id : null;
-    
-            if (departmentId === null) {
-                return res.status(404).send('Department not found.');
-            }
-    
-            // Fetch user ID
-            const userIdQuery = 'SELECT user_id FROM Users WHERE username = ?';
-            const [userIdResults] = await db.promise().query(userIdQuery, [user]);
-            const userId = userIdResults.length > 0 ? userIdResults[0].user_id : null;
-    
-            if (userId === null) {
-                return res.status(404).send('User not found.');
-            }
-    
-            // Prepare file upload metadata and media
-            const fileMetadata = {
-                name: file.originalname,
-            };
-            const media = {
-                mimeType: file.mimetype,
-                body: fs.createReadStream(file.path),
-            };
-    
-            // Upload file to Google Drive
-            const driveResponse = await drive.files.create({
-                resource: fileMetadata,
-                media,
-                fields: 'id',
-            });
-    
-            // Set permissions to make the file accessible
-            await drive.permissions.create({
-                fileId: driveResponse.data.id,
-                requestBody: {
-    role: 'reader',
-                    type: 'anyone',
-                },
-            });
-    
-            // Generate download link
-            const filePath = `https://drive.google.com/uc?export=download&id=${driveResponse.data.id}`;
-    
-            // Insert file details into the database
-            const uploadDate = new Date();
-            const insertQuery = 'INSERT INTO Materials (material_title, file_path, department_id, uploaded_by) VALUES (?, ?, ?, ?)';
-            const inserts = [file.originalname, filePath, departmentId, userId];
-            await db.promise().query(insertQuery, inserts);
-    
-            // Clean up temporary file
-            fs.unlinkSync(file.path);
-    
-            res.status(200).send('File uploaded and saved.');
-        } catch (err) {
-            console.error('errdurinf add materiyal:', err);
-            res.status(500).send('An error occurred during upload.');
-             
-        }
-    });
-    
+    credentials: {
+        client_email: process.env.GOOGLE_CLIENT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    },
+    scopes: ['https://www.googleapis.com/auth/drive.file'],
+});
 
+const drive = google.drive({ version: 'v3', auth });
+
+app.post('/upload', upload.single('file'), async (req, res) => {
+    try {
+        const { selectedDipartment, user } = req.body;
+        const file = req.file;
+
+        if (!file) {
+            return res.status(400).send('No file uploaded.');
+        }
+
+        // Fetch department ID
+        const departmentQuery = 'SELECT department_id FROM Departments WHERE department_name = ?';
+        const [departmentResults] = await db.promise().query(departmentQuery, [selectedDipartment]);
+        const departmentId = departmentResults.length > 0 ? departmentResults[0].department_id : null;
+
+        if (departmentId === null) {
+            return res.status(404).send('Department not found.');
+        }
+
+        // Fetch user ID
+        const userIdQuery = 'SELECT user_id FROM Users WHERE username = ?';
+        const [userIdResults] = await db.promise().query(userIdQuery, [user]);
+        const userId = userIdResults.length > 0 ? userIdResults[0].user_id : null;
+
+        if (userId === null) {
+            return res.status(404).send('User not found.');
+        }
+
+        // Prepare file upload metadata and media
+        const fileMetadata = {
+            name: file.originalname,
+        };
+        const media = {
+            mimeType: file.mimetype,
+            body: fs.createReadStream(file.path),
+        };
+
+        // Upload file to Google Drive
+        const driveResponse = await drive.files.create({
+            resource: fileMetadata,
+            media,
+            fields: 'id',
+        });
+
+        // Set permissions to make the file accessible
+        await drive.permissions.create({
+            fileId: driveResponse.data.id,
+            requestBody: {
+                role: 'reader',
+                type: 'anyone',
+            },
+        });
+
+        // Generate download link
+        const filePath = `https://drive.google.com/uc?export=download&id=${driveResponse.data.id}`;
+
+        // Insert file details into the database
+        const uploadDate = new Date();
+        const insertQuery = 'INSERT INTO Materials (material_title, file_path, department_id, uploaded_by) VALUES (?, ?, ?, ?)';
+        const inserts = [file.originalname, filePath, departmentId, userId];
+        await db.promise().query(insertQuery, inserts);
+
+        // Clean up temporary file
+        fs.unlinkSync(file.path);
+
+        res.status(200).send('File uploaded and saved.');
+    } catch (err) {
+        console.error('errdurinf add materiyal:', err);
+        res.status(500).send('An error occurred during upload.');
+    }
+});
 
 // 5. Add a comment to a material
 app.post('/comments', (req, res) => {
@@ -240,7 +231,6 @@ app.post('/favorites', (req, res) => {
 });
 
 // 8. add Dipartment
-
 app.post('/dipartment', (req, res) => {
     const { dipartment_name } = req.body;
     console.log('Department name:', dipartment_name); // Log incoming data
@@ -257,7 +247,6 @@ app.post('/dipartment', (req, res) => {
     });
 });
 
-
 // 9. Log user activity
 app.post('/logs', (req, res) => {
     const { user_id, action } = req.body;
@@ -272,78 +261,18 @@ app.post('/logs', (req, res) => {
     });
 });
 
-
 app.patch('/addadmin', async (req, res) => {
     const { email, position } = req.body;
     console.log(email);
-    console.log(position);
-    
-
-    const query = `UPDATE Users SET role = ? WHERE email = ?`;
-
-    db.query(query, [position, email], (err, result) => {
+    db.query('UPDATE Users SET role = ? WHERE email = ?', [position, email], (err, result) => {
         if (err) {
             res.status(500).send(err);
         } else {
-            res.send('User role updated successfully');
-        }
-        
-    });
-});
-
-
-
-// 10 retrive the department
-app.get('/dipartments', (req, res) => {
-    const query = 'SELECT * FROM Departments';
-    
-    db.query(query, (err, results) => {
-        if (err) {
-            res.status(500).send(err);
-        } else {
-            res.json(results);
+            res.send('User promoted to admin');
         }
     });
 });
 
-// 10 retrive the department
-app.get('/users', (req, res) => {
-    const query = 'SELECT * FROM Users';
-    
-
-    db.query(query, (err, results) => {
-        if (err) {
-            res.status(500).send(err);
-        } else {
-            res.json(results);
-        }
-    });
-});
-
-//////////////////////////////////////////////////////////
-// Retrieve uploaded files
-app.get('/materials', async (req, res) => {
-    try {
-        const query = 'SELECT * FROM Materials'; // Adjust this query to fit your needs
-        db.query(query, (err, results) => {
-            if (err) {
-                console.error('Error fetching materials:', err);
-                
-                return res.status(500).send('Error fetching materials.');
-            }
-
-            // Send results back to client
-            res.status(200).json(results);
-        });
-    } catch (error) {
-        console.error('Error retrieving materials:', error);
-        res.status(500).send('Error retrieving materials.');
-    }
-});
-
-
-// Server setup
-const PORT = 5000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+app.listen(5000, () => {
+    console.log('Server running on port 5000');
 });
