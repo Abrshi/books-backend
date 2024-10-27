@@ -324,3 +324,12 @@ app.get('/materials', async (req, res) => {
 app.listen(5000, () => {
     console.log('Server running on port 5000');
 });
+
+setInterval(() => {
+    db.query('SELECT 1', (err) => {
+        if (err) {
+            console.error('Error with MySQL keep-alive ping:', err);
+        }
+    });
+}, 10000); // Pings every 10 seconds
+
