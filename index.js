@@ -310,7 +310,7 @@ app.get('/materials', async (req, res) => {
         const queryParams = [];
 
         if (department) {
-            query += ' WHERE department = ?';
+            query += ' WHERE department_id = ?';
             queryParams.push(department);
         }
 
