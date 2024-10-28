@@ -303,12 +303,20 @@ app.get('/users', (req, res) => {
 //////////////////////////////////////////////////////////
 // Retrieve uploaded files
 app.get('/materials', async (req, res) => {
+    const department = req.query.department;
+
     try {
-        const query = 'SELECT * FROM Materials'; // Adjust this query to fit your needs
-        db.query(query, (err, results) => {
+        let query = 'SELECT * FROM Materials';
+        const queryParams = [];
+
+        if (department) {
+            query += ' WHERE department = ?';
+            queryParams.push(department);
+        }
+
+        db.query(query, queryParams, (err, results) => {
             if (err) {
                 console.error('Error fetching materials:', err);
-                
                 return res.status(500).send('Error fetching materials.');
             }
 
@@ -321,6 +329,7 @@ app.get('/materials', async (req, res) => {
     }
 });
 
+
 app.listen(5000, () => {
     console.log('Server running on port 5000');
 });
@@ -332,4 +341,5 @@ setInterval(() => {
         }
     });
 }, 10000); // Pings every 10 seconds
+
 
