@@ -230,6 +230,27 @@ app.post('/favorites', (req, res) => {
     });
 });
 
+app.delete('/favorites', (req, res) => {
+    const { user_id, material_id } = req.body; // Get user_id and material_id from the request body
+    const query = `DELETE FROM Favorites WHERE user_id = ? AND material_id = ?`; // SQL query to delete the record
+  
+  
+    db.query(query, [user_id, material_id], (err, result) => {
+        if (err) {
+            res.status(500).send(err); // Handle error response
+           
+        } else {
+            if (result.affectedRows > 0) {
+                res.send('Material removed from favorites'); // Success message if a record was deleted
+                
+            } else {
+                res.status(404).send('Favorite not found'); // Handle case where no record was found
+              
+                console.log(material_id, user_id);
+            }
+        }
+    });
+});
 // 8. add Dipartment
 app.post('/dipartment', (req, res) => {
     const { dipartment_name } = req.body;
@@ -328,6 +349,25 @@ app.get('/materials', async (req, res) => {
         res.status(500).send('Error retrieving materials.');
     }
 });
+//////////////////////////
+app.get('/materials/favorites/:userId', (req, res) => {
+    const userId = req.params.userId; // Get the user ID from the request parameters
+  console.log(userId);
+  
+    const query = `
+      SELECT m.*
+      FROM Materials m
+      JOIN Favorites f ON m.material_id = f.material_id
+      WHERE f.user_id = ?`;
+  
+    db.query(query, [userId], (error, results) => {
+      if (error) {
+        console.error('Error retrieving materials:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+      }
+      res.json(results); // Send the results as a JSON response
+    });
+  });
 
 
 app.listen(5000, () => {
