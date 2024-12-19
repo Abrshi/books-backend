@@ -13,19 +13,19 @@ const app = express();
 const allowedOrigins = [
     'https://csbookstore.netlify.app', // Deployed frontend on Netlify
     'http://localhost:3000' // Local frontend during development
-  ];
-  
-  app.use(cors({
+];
+
+app.use(cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      } else {
-        return callback(new Error('Not allowed by CORS'));
-      }
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        } else {
+            return callback(new Error('Not allowed by CORS'));
+        }
     }
-  }));
+}));
 app.use(express.json());
 
 const upload = multer({ dest: 'uploads/' }); // Temporary storage for google drive
@@ -76,7 +76,7 @@ app.post('/courses', (req, res) => {
         if (err) {
             res.status(500).send(err);
             console.error('err during  add cours:', err);
-            
+
         } else {
             res.send('Course created successfully');
         }
@@ -86,12 +86,12 @@ app.post('/courses', (req, res) => {
 // 3. Login and JWT generation
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
-    
+
     db.query('SELECT * FROM Users WHERE email = ?', [email], async (err, results) => {
         if (err) {
             console.error('err during  add cours:', err);
             return res.status(400).send(err);
-            
+
         }
         if (results.length === 0) return res.status(404).send('User not found');
 
@@ -99,7 +99,7 @@ app.post('/login', (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(401).send('Invalid credentials');
 
-        res.json({ username: user.username ,role:user.role , behavior_score:user.behavior_score ,email:user.email ,user_id:user.user_id});
+        res.json({ username: user.username, role: user.role, behavior_score: user.behavior_score, email: user.email, user_id: user.user_id });
     });
 });
 
@@ -233,19 +233,19 @@ app.post('/favorites', (req, res) => {
 app.delete('/favorites', (req, res) => {
     const { user_id, material_id } = req.body; // Get user_id and material_id from the request body
     const query = `DELETE FROM Favorites WHERE user_id = ? AND material_id = ?`; // SQL query to delete the record
-  
-  
+
+
     db.query(query, [user_id, material_id], (err, result) => {
         if (err) {
             res.status(500).send(err); // Handle error response
-           
+
         } else {
             if (result.affectedRows > 0) {
                 res.send('Material removed from favorites'); // Success message if a record was deleted
-                
+
             } else {
                 res.status(404).send('Favorite not found'); // Handle case where no record was found
-              
+
                 console.log(material_id, user_id);
             }
         }
@@ -257,7 +257,7 @@ app.post('/dipartment', (req, res) => {
     console.log('Department name:', dipartment_name); // Log incoming data
 
     const query = `INSERT INTO Departments (department_name) VALUES (?)`;
-    
+
     db.query(query, [dipartment_name], (err, result) => {
         if (err) {
             console.error('Database error:', err); // Log any SQL error
@@ -297,7 +297,7 @@ app.patch('/addadmin', async (req, res) => {
 // 10 retrive the department
 app.get('/dipartments', (req, res) => {
     const query = 'SELECT * FROM Departments';
-    
+
     db.query(query, (err, results) => {
         if (err) {
             res.status(500).send(err);
@@ -310,7 +310,7 @@ app.get('/dipartments', (req, res) => {
 // 10 retrive the department
 app.get('/users', (req, res) => {
     const query = 'SELECT * FROM Users';
-    
+
 
     db.query(query, (err, results) => {
         if (err) {
@@ -352,22 +352,22 @@ app.get('/materials', async (req, res) => {
 //////////////////////////
 app.get('/materials/favorites/:userId', (req, res) => {
     const userId = req.params.userId; // Get the user ID from the request parameters
-  console.log(userId);
-  
+    console.log(userId);
+
     const query = `
       SELECT m.*
       FROM Materials m
       JOIN Favorites f ON m.material_id = f.material_id
       WHERE f.user_id = ?`;
-  
+
     db.query(query, [userId], (error, results) => {
-      if (error) {
-        console.error('Error retrieving materials:', error);
-        return res.status(500).json({ error: 'Internal Server Error' });
-      }
-      res.json(results); // Send the results as a JSON response
+        if (error) {
+            console.error('Error retrieving materials:', error);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+        res.json(results); // Send the results as a JSON response
     });
-  });
+});
 
 
 app.listen(5000, () => {
@@ -380,6 +380,6 @@ setInterval(() => {
             console.error('Error with MySQL keep-alive ping:', err);
         }
     });
-}, 10000); // Pings every 10 seconds
+}, 1000); // Pings every 10 seconds
 
 
