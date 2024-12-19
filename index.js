@@ -380,6 +380,6 @@ setInterval(() => {
             console.error('Error with MySQL keep-alive ping:', err);
         }
     });
-}, 1000); // Pings every 10 seconds
+}, 1000); // Pings every 10 seconds to keep the databas activ
 
 
